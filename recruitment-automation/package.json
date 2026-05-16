@@ -1,0 +1,37 @@
+{
+  "name": "recruitment-automation",
+  "version": "1.0.0",
+  "description": "HR recruitment intake automation for macOS",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "node --watch main.js",
+    "setup": "bash scripts/setup.sh",
+    "test:email": "node src/input/emailWatcher.js --test",
+    "test:extract": "node src/extraction/aiExtractor.js --test",
+    "test:validate": "node src/validation/validator.js --test",
+    "test:hrappka": "node src/automation/hrappka.js --test",
+    "db:migrate": "node src/database/migrate.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "imap": "^0.8.19",
+    "mailparser": "^3.7.1",
+    "pdf-parse": "^1.1.1",
+    "playwright": "^1.44.1",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "node-cron": "^3.0.3",
+    "zod": "^3.23.8",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.1"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

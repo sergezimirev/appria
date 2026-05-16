@@ -1,0 +1,9 @@
+node_modules/
+.env
+data/
+logs/
+archives/
+logs/screenshots/
+data/hrappka-session.json
+*.log
+.DS_Store

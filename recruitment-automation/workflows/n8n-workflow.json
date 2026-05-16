@@ -1,0 +1,88 @@
+{
+  "name": "Recruitment Intake — Email to HRappka",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "IMAP Email Trigger",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [200, 300],
+      "parameters": {
+        "mailbox": "INBOX",
+        "format": "resolved",
+        "options": {
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "credentials": { "imap": { "id": "1", "name": "Recruitment Gmail" } }
+    },
+    {
+      "id": "2",
+      "name": "Filter PDF Attachments",
+      "type": "n8n-nodes-base.filter",
+      "position": [400, 300],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.attachments.length > 0 }}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3",
+      "name": "Run Automation Pipeline",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [600, 300],
+      "parameters": {
+        "command": "node /path/to/recruitment-automation/src/pipeline-single.js '{{ $json.messageId }}'"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Check Result",
+      "type": "n8n-nodes-base.switch",
+      "position": [800, 300],
+      "parameters": {
+        "rules": {
+          "rules": [
+            { "value1": "={{ $json.status }}", "value2": "success", "output": 0 },
+            { "value1": "={{ $json.status }}", "value2": "manual_review", "output": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5",
+      "name": "Mark Processed",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [1000, 200],
+      "parameters": { "operation": "markAsRead" }
+    },
+    {
+      "id": "6",
+      "name": "Alert Manual Review",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [1000, 400],
+      "parameters": {
+        "toEmail": "hr@yourcompany.pl",
+        "subject": "Manual Review Required: {{ $json.candidate }}",
+        "text": "A candidate requires manual review.\n\nReason: {{ $json.reason }}\n\nCheck the queue: http://localhost:5678"
+      }
+    }
+  ],
+  "connections": {
+    "IMAP Email Trigger": { "main": [[{ "node": "Filter PDF Attachments", "type": "main", "index": 0 }]] },
+    "Filter PDF Attachments": { "main": [[{ "node": "Run Automation Pipeline", "type": "main", "index": 0 }]] },
+    "Run Automation Pipeline": { "main": [[{ "node": "Check Result", "type": "main", "index": 0 }]] },
+    "Check Result": {
+      "main": [
+        [{ "node": "Mark Processed", "type": "main", "index": 0 }],
+        [{ "node": "Alert Manual Review", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}
