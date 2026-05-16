@@ -12,9 +12,11 @@ export class EmailWatcher {
     this.onEmailReceived = onEmailReceived;
     this.imap = null;
     this.isConnected = false;
+    this._reconnecting = false;
   }
 
   connect() {
+    this._reconnecting = false;
     const { host, port, tls, user, password, mailbox } = config.imap;
     this.imap = new Imap({ host, port, tls, user, password, tlsOptions: { rejectUnauthorized: false } });
 
@@ -27,16 +29,22 @@ export class EmailWatcher {
     this.imap.on('error', (err) => {
       logger.error('IMAP error', { err: err.message });
       this.isConnected = false;
-      setTimeout(() => this.connect(), 30_000);
+      this._scheduleReconnect();
     });
 
     this.imap.once('end', () => {
-      logger.warn('IMAP connection ended, reconnecting in 30s');
       this.isConnected = false;
-      setTimeout(() => this.connect(), 30_000);
+      this._scheduleReconnect();
     });
 
     this.imap.connect();
+  }
+
+  _scheduleReconnect() {
+    if (this._reconnecting) return;
+    this._reconnecting = true;
+    logger.warn('IMAP connection ended, reconnecting in 30s');
+    setTimeout(() => this.connect(), 30_000);
   }
 
   _openMailbox(mailbox) {
@@ -111,7 +119,7 @@ export class EmailWatcher {
     const receivedAt = parsed.date?.toISOString() || new Date().toISOString();
 
     // Duplicate check
-    const existing = queries.emailExists.get(messageId);
+    const existing = queries.emailExists(messageId);
     if (existing) {
       logger.debug('Email already processed', { messageId });
       return;
@@ -131,13 +139,7 @@ export class EmailWatcher {
     logger.info('Processing email', { messageId, subject, fromAddr, pdfs: pdfAttachments.length });
 
     // Insert email record
-    const emailRecord = queries.insertEmail.run({
-      messageId,
-      subject,
-      fromAddr,
-      receivedAt,
-      status: 'processing',
-    });
+    const emailRecord = queries.insertEmail({ messageId, subject, fromAddr, receivedAt, status: 'processing' });
     const emailId = emailRecord.lastInsertRowid;
 
     // Save PDFs to archive
@@ -166,7 +168,7 @@ export class EmailWatcher {
       this._markSeen(uid);
     } catch (err) {
       logger.error('Email processing pipeline failed', { emailId, err: err.message });
-      queries.updateEmailStatus.run({ id: emailId, status: 'failed', error: err.message });
+      queries.updateEmailStatus({ id: emailId, status: 'failed', error: err.message });
     }
   }
 
