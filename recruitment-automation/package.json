@@ -4,31 +4,34 @@
   "description": "HR recruitment intake automation for macOS",
   "main": "main.js",
   "scripts": {
-    "start": "node main.js",
-    "dev": "node --watch main.js",
+    "start": "node --experimental-sqlite main.js",
+    "dev": "node --experimental-sqlite --watch main.js",
+    "pm2:start": "node_modules/.bin/pm2 start ecosystem.config.cjs",
+    "pm2:stop": "node_modules/.bin/pm2 stop recruitment-automation",
+    "pm2:logs": "node_modules/.bin/pm2 logs recruitment-automation",
+    "pm2:save": "node_modules/.bin/pm2 save",
     "setup": "bash scripts/setup.sh",
-    "test:email": "node src/input/emailWatcher.js --test",
-    "test:extract": "node src/extraction/aiExtractor.js --test",
-    "test:validate": "node src/validation/validator.js --test",
-    "test:hrappka": "node src/automation/hrappka.js --test",
-    "db:migrate": "node src/database/migrate.js"
+    "test:email": "node --experimental-sqlite src/input/emailWatcher.js --test",
+    "test:extract": "node --experimental-sqlite src/extraction/aiExtractor.js --test",
+    "test:validate": "node --experimental-sqlite src/validation/validator.js --test",
+    "test:hrappka": "node --experimental-sqlite src/automation/hrappka.js --test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",
-    "better-sqlite3": "^9.4.3",
     "dotenv": "^16.4.5",
     "imap": "^0.8.19",
+    "keytar": "^7.9.0",
     "mailparser": "^3.7.1",
+    "node-cron": "^3.0.3",
     "pdf-parse": "^1.1.1",
     "playwright": "^1.44.1",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "node-cron": "^3.0.3",
-    "zod": "^3.23.8",
-    "keytar": "^7.9.0"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.1"
+    "@playwright/test": "^1.44.1",
+    "pm2": "^7.0.1"
   },
   "type": "module",
   "engines": {

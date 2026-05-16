@@ -9,9 +9,7 @@ import { validateCandidate } from './src/validation/validator.js';
 import { HRappkaBot } from './src/automation/hrappka.js';
 import { createCandidateNote } from './src/automation/appleNotes.js';
 import { queries, logStage } from './src/database/db.js';
-import { withRetry } from './src/utils/helpers.js';
 
-// Shared HRappka browser instance — reused across emails
 const hrappka = new HRappkaBot();
 
 async function processEmail(emailData) {
@@ -22,7 +20,7 @@ async function processEmail(emailData) {
     await processPdf({ emailId, pdfPath, filename, fromAddr, emailText });
   }
 
-  queries.updateEmailStatus.run({ id: emailId, status: 'success', error: null });
+  queries.updateEmailStatus({ id: emailId, status: 'success', error: null });
 }
 
 async function processPdf({ emailId, pdfPath, filename, fromAddr, emailText }) {
@@ -82,16 +80,16 @@ async function processPdf({ emailId, pdfPath, filename, fromAddr, emailText }) {
     .digest('hex')
     .slice(0, 16);
 
-  const existingByHash = queries.candidateByHash.get(contentHash);
+  const existingByHash = queries.candidateByHash(contentHash);
   if (existingByHash) {
     logger.warn('Duplicate candidate detected, skipping', { contentHash });
     logStage({ emailId, stage: 'duplicate_check', status: 'duplicate', detail: contentHash });
-    queries.updateEmailStatus.run({ id: emailId, status: 'duplicate', error: null });
+    queries.updateEmailStatus({ id: emailId, status: 'duplicate', error: null });
     return;
   }
 
   if (data.pesel) {
-    const existingByPesel = queries.candidateByPesel.get(data.pesel);
+    const existingByPesel = queries.candidateByPesel(data.pesel);
     if (existingByPesel) {
       logger.warn('Candidate with same PESEL already exists', { pesel: data.pesel });
       logStage({ emailId, stage: 'duplicate_check', status: 'pesel_duplicate', detail: data.pesel });
@@ -105,7 +103,7 @@ async function processPdf({ emailId, pdfPath, filename, fromAddr, emailText }) {
   }
 
   // ── 5. Persist candidate record ─────────────────────────
-  const candidateRecord = queries.insertCandidate.run({
+  const result = queries.insertCandidate({
     emailId,
     firstName: data.firstName,
     lastName: data.lastName,
@@ -121,7 +119,7 @@ async function processPdf({ emailId, pdfPath, filename, fromAddr, emailText }) {
     status: 'processing',
     contentHash,
   });
-  const candidateId = candidateRecord.lastInsertRowid;
+  const candidateId = result.lastInsertRowid;
   logger.info('Candidate record created', { candidateId });
 
   // ── 6. HRappka automation ───────────────────────────────
@@ -129,54 +127,34 @@ async function processPdf({ emailId, pdfPath, filename, fromAddr, emailText }) {
   let hrappkaResult = { success: false };
   try {
     hrappkaResult = await hrappka.createCandidate(data, pdfPath);
-    queries.updateCandidateHrappkaId.run({
-      id: candidateId,
-      hrappkaId: hrappkaResult.hrappkaId,
-      status: 'hrappka_done',
-    });
+    queries.updateCandidateHrappkaId({ id: candidateId, hrappkaId: hrappkaResult.hrappkaId, status: 'hrappka_done' });
     logStage({ emailId, candidateId, stage: 'hrappka', status: 'ok', detail: hrappkaResult.hrappkaId });
   } catch (err) {
     logger.error('HRappka automation failed', { candidateId, err: err.message });
     logStage({ emailId, candidateId, stage: 'hrappka', status: 'failed', detail: err.message });
-    // Non-fatal: continue to Apple Notes
   }
 
   // ── 7. Apple Notes ──────────────────────────────────────
   logStage({ emailId, candidateId, stage: 'apple_notes', status: 'started' });
   try {
-    await createCandidateNote(data, {
-      hrappkaUrl: hrappkaResult.url,
-      recruiterEmail: fromAddr,
-    });
+    await createCandidateNote(data, { hrappkaUrl: hrappkaResult.url, recruiterEmail: fromAddr });
     logStage({ emailId, candidateId, stage: 'apple_notes', status: 'ok' });
   } catch (err) {
     logger.error('Apple Notes failed', { candidateId, err: err.message });
     logStage({ emailId, candidateId, stage: 'apple_notes', status: 'failed', detail: err.message });
   }
 
-  logger.info('Pipeline complete', {
-    candidateId,
-    name: `${data.firstName} ${data.lastName}`,
-    hrappkaId: hrappkaResult.hrappkaId,
-  });
+  logger.info('Pipeline complete', { candidateId, name: `${data.firstName} ${data.lastName}`, hrappkaId: hrappkaResult.hrappkaId });
 }
 
 async function sendToManualReview({ emailId, reason, rawData }) {
   logger.warn('Sending to manual review', { emailId, reason });
-  queries.insertReview.run({
-    candidateId: null,
-    emailId,
-    reason,
-    rawData: JSON.stringify(rawData),
-  });
-  queries.updateEmailStatus.run({ id: emailId, status: 'manual_review', error: reason });
+  queries.insertReview({ candidateId: null, emailId, reason, rawData: JSON.stringify(rawData) });
+  queries.updateEmailStatus({ id: emailId, status: 'manual_review', error: reason });
 }
 
 async function main() {
-  logger.info('Recruitment automation starting', {
-    node: process.version,
-    env: process.env.NODE_ENV || 'production',
-  });
+  logger.info('Recruitment automation starting', { node: process.version });
 
   await hrappka.init();
 
@@ -185,14 +163,13 @@ async function main() {
       await processEmail(emailData);
     } catch (err) {
       logger.error('Unhandled pipeline error', { emailId: emailData.emailId, err: err.message, stack: err.stack });
-      queries.updateEmailStatus.run({ id: emailData.emailId, status: 'failed', error: err.message });
+      queries.updateEmailStatus({ id: emailData.emailId, status: 'failed', error: err.message });
     }
   });
 
   watcher.connect();
   logger.info('Watching for emails', { interval: config.polling.intervalSeconds + 's' });
 
-  // Graceful shutdown
   for (const sig of ['SIGINT', 'SIGTERM']) {
     process.on(sig, async () => {
       logger.info(`Received ${sig}, shutting down`);

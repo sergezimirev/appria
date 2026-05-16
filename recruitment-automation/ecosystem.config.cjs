@@ -4,7 +4,7 @@ module.exports = {
       name: 'recruitment-automation',
       script: 'main.js',
       interpreter: 'node',
-      interpreter_args: '--experimental-vm-modules',
+      interpreter_args: '--experimental-sqlite',
       watch: false,
       autorestart: true,
       max_restarts: 10,
