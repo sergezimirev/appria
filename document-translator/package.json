@@ -1,0 +1,30 @@
+{
+  "name": "document-translator",
+  "version": "1.0.0",
+  "description": "Watches a folder for documents, translates them via Claude AI, and creates Apple Notes",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "node --watch main.js",
+    "pm2:start": "node_modules/.bin/pm2 start ecosystem.config.cjs",
+    "pm2:stop": "node_modules/.bin/pm2 stop document-translator",
+    "pm2:logs": "node_modules/.bin/pm2 logs document-translator",
+    "pm2:save": "node_modules/.bin/pm2 save",
+    "setup": "bash scripts/setup.sh"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "dotenv": "^16.4.5",
+    "pdf-parse": "^1.1.1",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "pm2": "^7.0.1"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
