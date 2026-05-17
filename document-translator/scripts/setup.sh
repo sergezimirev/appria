@@ -45,8 +45,7 @@ fi
 
 # ── npm install ────────────────────────────────────────────────────────────────
 echo "Installing dependencies..."
-# Use a writable cache location to avoid permission issues on shared machines
-npm install --cache /tmp/npm-cache-document-translator
+npm install
 echo "✓ Dependencies installed"
 
 # ── PM2 (optional, for production) ────────────────────────────────────────────
