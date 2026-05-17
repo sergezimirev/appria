@@ -31,10 +31,16 @@ Use these standard Polish translations for domain-specific terms:
 - Neukunde → Nowy klient
 - Weitere Hinweise → Uwagi dodatkowe
 
-Return the translation as HTML preserving the form structure:
+Return the translation as HTML in two parts:
+
+PART 1 — Full translated form:
 - Use <h2> for the form title (Wniosek o opiekę)
 - Use <h3> for each section heading
 - Use <p> for labeled fields in the format <b>Etykieta:</b> wartość
 - Use <ul><li> for lists of tasks or conditions
 - Keep all IDs, codes, dates, and numeric values unchanged
-- Do not add any preamble or explanation — return only the HTML
+
+PART 2 — Summary:
+After the full translation, add a <hr> separator followed by <h3>Podsumowanie</h3> and a short summary (5–10 sentences) written in Polish as flowing prose. The summary should read like a brief handover note a coordinator would write — covering who the person is, their health and mobility status, key care needs, behavioral notes, and any important context from the additional remarks. Use proper medical language consistent with the glossary above.
+
+Do not add any preamble or explanation outside the HTML.
