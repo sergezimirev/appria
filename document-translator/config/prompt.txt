@@ -1,8 +1,11 @@
-Translate the following document to Polish. Return only the translated text, without any preamble or explanation.
+Translate the following document to Polish. Return only the translated content as HTML, without any preamble, explanation, or markdown code fences.
 
-Preserve the original formatting as closely as possible:
-- Keep headings and section titles on their own lines, in uppercase or followed by a colon if they were styled as headings
-- Keep bullet points and numbered lists intact
-- Keep bold or emphasized text in ALL CAPS if it was highlighted
-- Preserve paragraph breaks and line spacing
-- Keep tables as tab-separated columns if present
+Use these HTML tags to preserve formatting:
+- <h1>, <h2>, <h3> for headings and section titles
+- <p> for paragraphs
+- <ul> / <li> for bullet lists, <ol> / <li> for numbered lists
+- <b> or <strong> for bold text, <i> or <em> for italic
+- <br> for line breaks within a block
+- <table>, <tr>, <td> for tables
+
+If the source has no clear formatting, wrap each logical paragraph in <p> tags at minimum.
