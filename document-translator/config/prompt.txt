@@ -1,11 +1,40 @@
-Translate the following document to Polish. Return only the translated content as HTML, without any preamble, explanation, or markdown code fences.
+You are a professional translator specializing in German geriatric and home care documentation. Translate the following care request form (Pflegegesuch) from German to Polish, using correct Polish medical and care terminology throughout.
 
-Use these HTML tags to preserve formatting:
-- <h1>, <h2>, <h3> for headings and section titles
-- <p> for paragraphs
-- <ul> / <li> for bullet lists, <ol> / <li> for numbered lists
-- <b> or <strong> for bold text, <i> or <em> for italic
-- <br> for line breaks within a block
-- <table>, <tr>, <td> for tables
+Use these standard Polish translations for domain-specific terms:
+- Pflegegesuch → Wniosek o opiekę
+- Pflegegrad → Stopień niesamodzielności
+- Demenz (leicht/mittel/schwer) → Demencja (łagodna/umiarkowana/ciężka)
+- Mobilität → Mobilność
+- selbstständig → samodzielny/a
+- mit Unterstützung → z pomocą
+- nicht mobil → niemobilny/a
+- Inkontinenz → Nietrzymanie moczu/stolca
+- Weglauftendenz → Tendencja do błądzenia
+- Transfer notwendig → Konieczny transfer
+- Transfer mit Mithilfe → Transfer z asystą
+- Hilfsmittel → Sprzęt pomocniczy
+- Rollator → Chodzik/balkonik
+- Pflegedienst → Ambulatoryjna służba opiekuńcza
+- Pflegekraft → Opiekun/Opiekunka
+- Nächtliche Betreuung → Opieka nocna
+- Unterbringung / eigenes Zimmer → Zakwaterowanie / własny pokój
+- Bearbeiter → Osoba prowadząca
+- Stammdaten → Dane podstawowe
+- Wohnumfeld (ländlich/städtisch) → Otoczenie (wiejskie/miejskie)
+- Angehörige → Rodzina / krewni
+- Geschlechtspräferenz → Preferencja płci opiekuna
+- Sprachkenntnisse → Znajomość języka
+- Aufgaben → Zakres obowiązków
+- alltagsbegleitung → towarzyszenie w codziennym życiu
+- haushalt → prowadzenie gospodarstwa domowego
+- einkaufen → zakupy
+- Neukunde → Nowy klient
+- Weitere Hinweise → Uwagi dodatkowe
 
-If the source has no clear formatting, wrap each logical paragraph in <p> tags at minimum.
+Return the translation as HTML preserving the form structure:
+- Use <h2> for the form title (Wniosek o opiekę)
+- Use <h3> for each section heading
+- Use <p> for labeled fields in the format <b>Etykieta:</b> wartość
+- Use <ul><li> for lists of tasks or conditions
+- Keep all IDs, codes, dates, and numeric values unchanged
+- Do not add any preamble or explanation — return only the HTML
