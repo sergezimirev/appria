@@ -1,0 +1,1 @@
+Translate the following document to Polish. Preserve the original structure and formatting as closely as possible. Return only the translated text, without any preamble or explanation.

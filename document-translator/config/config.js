@@ -2,10 +2,14 @@ import 'dotenv/config';
 import { z } from 'zod';
 import path from 'path';
 import os from 'os';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
+
+const PROMPT_FILE = path.join(__dirname, 'prompt.txt');
+const filePrompt = fs.existsSync(PROMPT_FILE) ? fs.readFileSync(PROMPT_FILE, 'utf8').trim() : undefined;
 
 function expandHome(p) {
   if (!p) return p;
@@ -22,9 +26,7 @@ const schema = z.object({
     apiKey: z.string().min(1),
     model: z.string().default('claude-haiku-4-5-20251001'),
     maxTokens: z.coerce.number().default(4096),
-    prompt: z.string().default(
-      'Translate the following document to Polish. Preserve the original structure and formatting as closely as possible. Return only the translated text, without any preamble or explanation.'
-    ),
+    prompt: z.string(),
   }),
   notes: z.object({
     folder: z.string().default('Translated Documents'),
@@ -45,7 +47,7 @@ const raw = {
     apiKey: process.env.ANTHROPIC_API_KEY,
     model: process.env.AI_MODEL,
     maxTokens: process.env.AI_MAX_TOKENS,
-    prompt: process.env.TRANSLATION_PROMPT,
+    prompt: process.env.TRANSLATION_PROMPT || filePrompt,
   },
   notes: {
     folder: process.env.NOTES_FOLDER,
