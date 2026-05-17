@@ -39,6 +39,7 @@ PART 1 — Full translated form:
 - Use <p> for labeled fields in the format <b>Etykieta:</b> wartość
 - Use <ul><li> for lists of tasks or conditions
 - Keep all IDs, codes, dates, and numeric values unchanged
+- If a budget or monetary value has no currency symbol, append € (EUR) — never assume PLN
 
 PART 2 — Summary:
 After the full translation, add a <hr> separator followed by <h3>Podsumowanie</h3> and a short summary (5–10 sentences) written in Polish as flowing prose. The summary should read like a brief handover note a coordinator would write — covering who the person is, their health and mobility status, key care needs, behavioral notes, and any important context from the additional remarks. Use proper medical language consistent with the glossary above.
