@@ -16,23 +16,34 @@ export async function extractText(filePath) {
   return extractPlainText(filePath);
 }
 
+const PDF_ATTEMPTS = [
+  { version: 'v2.0.550' },
+  { version: 'v1.10.100' },
+  {},
+];
+
 async function extractPdf(filePath) {
-  try {
-    const buffer = fs.readFileSync(filePath);
-    const data = await pdfParse(buffer, { normalizeWhitespace: true });
-    const text = data.text?.trim() || '';
+  const buffer = fs.readFileSync(filePath);
+  const file = path.basename(filePath);
+  let lastErr;
 
-    logger.info('PDF extracted', { file: path.basename(filePath), chars: text.length, pages: data.numpages });
-
-    if (text.length < 20) {
-      logger.warn('PDF text very short — may be a scanned image', { file: path.basename(filePath) });
+  for (const opts of PDF_ATTEMPTS) {
+    try {
+      const data = await pdfParse(buffer, opts);
+      const text = data.text?.trim() || '';
+      logger.info('PDF extracted', { file, chars: text.length, pages: data.numpages, opts });
+      if (text.length < 20) {
+        logger.warn('PDF text very short — may be a scanned image', { file });
+      }
+      return { text, error: null };
+    } catch (err) {
+      logger.warn('PDF parse attempt failed, retrying with different options', { file, opts, err: err.message });
+      lastErr = err;
     }
-
-    return { text, error: null };
-  } catch (err) {
-    logger.error('PDF extraction failed', { file: path.basename(filePath), err: err.message });
-    return { text: '', error: err.message };
   }
+
+  logger.error('PDF extraction failed after all attempts', { file, err: lastErr.message });
+  return { text: '', error: lastErr.message };
 }
 
 function extractPlainText(filePath) {
